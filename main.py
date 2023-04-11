@@ -1,10 +1,13 @@
 from create_notebook import create_notebook
-from utils import copy_directory_tree, extract_code, extract_py_files, filter_files, read_multiline_input
+from extract_code import extract_code
+from utils import copy_directory_tree, extract_py_files, filter_files, read_multiline_input
 
 
 def main():
-    output_file = '/Users/mhodges/code_summarizer/output/extracted_code_summary.py'
-    output_notebook = '/Users/mhodges/code_summarizer/output/extracted_code_summary.ipynb'
+    output_file = '/Users/mhodges/PycharmProjects/crypto_twitter_analytics/' \
+                  'GCPApps/toto/scratch/summarized_code.py'
+    output_notebook = '/Users/mhodges/PycharmProjects/crypto_twitter_analytics/' \
+                      'GCPApps/toto/scratch/notebook_docs.ipynb'
 
     source_directory = input("Enter the source directory: ")
     tree_string = copy_directory_tree(source_directory)

@@ -1,40 +1,24 @@
-import ast
 import fnmatch
 import os
+from pathlib import Path
 
+import nbformat as nbf
 import pyperclip
 
-from code_extractor import CodeExtractor
 
+def write_to_file(output_file, content, is_notebook=False, join_with_newline=False):
+    # Create the directory if it doesn't exist
+    output_path = Path(output_file)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-# utils.py:
-def extract_code(filenames, output_file, include_classes=None, include_methods=None, exclude_classes=None,
-                 exclude_methods=None):
-    desired_code_blocks = []
-    docstrings = []
-    extractor = CodeExtractor(include_classes, include_methods, exclude_classes, exclude_methods)
-    file_code_blocks = []
-    file_docstring_blocks = []
-    for filename in filenames:
-        with open(filename, 'r') as f:
-            code = f.read()
-        ast_tree = ast.parse(code)
-        ast.fix_missing_locations(ast_tree)
-        extractor.visit(ast_tree)
-        desired_code = '\n'.join(extractor.code_blocks)
-        docstrings.extend(extractor.docstrings)
-        if desired_code:
-            file_name_only = os.path.basename(filename)
-            desired_code_blocks.append(f'# {file_name_only}:\n{desired_code}\n')
-        file_code_blocks.append(extractor.code_blocks[:])  # Make a copy of the current code_blocks
-        file_docstring_blocks.append(extractor.docstring_blocks[:])  # Make a copy of the current docstring_blocks
-        extractor.code_blocks.clear()  # Clear the current code_blocks
-        extractor.docstring_blocks.clear()  # Clear the current docstring_blocks
-    with open(output_file, 'w') as f:
-        f.write('\n'.join(desired_code_blocks))
-    extractor.code_blocks = file_code_blocks
-    extractor.docstring_blocks = file_docstring_blocks
-    return extractor
+    # Write to the file (overwrite if it exists)
+    with output_path.open('w') as f:
+        if is_notebook:
+            nbf.write(content, f)
+        elif join_with_newline:
+            f.write('\n'.join(content))
+        else:
+            f.write(content)
 
 
 def filter_files(path, include=None, exclude=None, ignore_dirs=None, ignore_files=None):
@@ -68,7 +52,6 @@ def copy_directory_tree(path):
     ignore_files = ['*.pyc', '__init__.py', '.DS_Store', '*.yaml', '*.json', '*.txt', '*.md', '*.csv', '*.png',
                     '*.jpg', '.idea', '*.git', '*.gitignore', '*.pylintrc', '.ipynb', '*.ipynb', '*.pkl', '*.pickle',
                     '*code_summary.py*', '*scratch*', '*test*']
-
     for root, dirs, files in os.walk(path):
         # Remove hidden directories and ignore_dirs from the list of directories
         dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ignore_dirs]

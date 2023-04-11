@@ -1,5 +1,7 @@
 import nbformat as nbf
 
+from utils import write_to_file
+
 
 def create_notebook(docstring_blocks, code_blocks, output_file):
     nb = nbf.v4.new_notebook()
@@ -11,5 +13,5 @@ def create_notebook(docstring_blocks, code_blocks, output_file):
                 nb.cells.append(markdown_docstring_cell)
             code_cell = nbf.v4.new_code_cell(code)
             nb.cells.append(code_cell)
-    with open(output_file, 'w') as f:
-        nbf.write(nb, f)
+    write_to_file(output_file, nb, is_notebook=True)
+
