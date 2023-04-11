@@ -64,18 +64,18 @@ def filter_files(path, include=None, exclude=None, ignore_dirs=None, ignore_file
 
 def copy_directory_tree(path):
     tree = ''
-    ignore_dirs = ['__pycache__', '.pytest_cache', 'v', 'cache', '.git', '.idea', 'objects', 'info', 'logs', 'refs',
-                   'hooks', 'inspectionProfiles', 'b2', 'pack', '00', '6c', 'e6', 'heads', 'tags', 'remotes', 'origin',
-                   'bb', 'f3', '4b', '72', '88', '46', '08']
+    ignore_dirs = {'__pycache__', '.pytest_cache'}
     ignore_files = ['*.pyc', '__init__.py', '.DS_Store', '*.yaml', '*.json', '*.txt', '*.md', '*.csv', '*.png',
                     '*.jpg', '.idea', '*.git', '*.gitignore', '*.pylintrc', '.ipynb', '*.ipynb', '*.pkl', '*.pickle',
                     '*code_summary.py*', '*scratch*', '*test*']
+
     for root, dirs, files in os.walk(path):
+        # Remove hidden directories and ignore_dirs from the list of directories
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ignore_dirs]
+
         level = root.replace(path, '').count(os.sep)
         indent = ' ' * 4 * level
         dir_name = os.path.basename(root)
-        if any(dir_name.startswith(d) for d in ignore_dirs):
-            continue
         tree += f"{indent}{dir_name}/\n"
         subindent = ' ' * 4 * (level + 1)
         for file in files:
