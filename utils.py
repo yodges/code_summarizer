@@ -7,40 +7,31 @@ import pyperclip
 from code_extractor import CodeExtractor
 
 
+# utils.py:
 def extract_code(filenames, output_file, include_classes=None, include_methods=None, exclude_classes=None,
                  exclude_methods=None):
     desired_code_blocks = []
     docstrings = []
-
-    # Initialize the extractor variable before the loop
     extractor = CodeExtractor(include_classes, include_methods, exclude_classes, exclude_methods)
     file_code_blocks = []
     file_docstring_blocks = []
-
     for filename in filenames:
         with open(filename, 'r') as f:
             code = f.read()
         ast_tree = ast.parse(code)
         ast.fix_missing_locations(ast_tree)
-
         extractor.visit(ast_tree)
         desired_code = '\n'.join(extractor.code_blocks)
         docstrings.extend(extractor.docstrings)
-
-        # Clear the extractor's code_blocks and docstrings for the next iteration
-        extractor.code_blocks = []
-        extractor.docstrings = []
-
         if desired_code:
             file_name_only = os.path.basename(filename)
-            desired_code_blocks.append(f"# {file_name_only}:\n{desired_code}\n")
-        file_code_blocks.append(extractor.code_blocks)
-        file_docstring_blocks.append(extractor.docstring_blocks)
-
+            desired_code_blocks.append(f'# {file_name_only}:\n{desired_code}\n')
+        file_code_blocks.append(extractor.code_blocks[:])  # Make a copy of the current code_blocks
+        file_docstring_blocks.append(extractor.docstring_blocks[:])  # Make a copy of the current docstring_blocks
+        extractor.code_blocks.clear()  # Clear the current code_blocks
+        extractor.docstring_blocks.clear()  # Clear the current docstring_blocks
     with open(output_file, 'w') as f:
         f.write('\n'.join(desired_code_blocks))
-
-    # Update the extractor's code_blocks and docstrings with the collected values
     extractor.code_blocks = file_code_blocks
     extractor.docstring_blocks = file_docstring_blocks
     return extractor
@@ -49,7 +40,8 @@ def extract_code(filenames, output_file, include_classes=None, include_methods=N
 def filter_files(path, include=None, exclude=None, ignore_dirs=None, ignore_files=None):
     if ignore_dirs is None:
         ignore_dirs = ['__pycache__', '.pytest_cache', 'v', 'cache', '.git', '.idea', 'objects', 'info', 'logs', 'refs',
-                       'hooks', 'inspectionProfiles']
+                       'hooks', 'inspectionProfiles', 'b2', 'pack', '00', '6c', 'e6', 'heads', 'tags', 'remotes',
+                       'origin', 'bb', 'f3', '4b', '72', '88', '46', '08']
     if ignore_files is None:
         ignore_files = ['*.pyc', '__init__.py', '.DS_Store', '*.yaml', '*.json', '*.txt', '*.md', '*.csv', '*.png',
                         '*.jpg', '.idea', '*.git', '*.gitignore', '*.pylintrc', '.ipynb', '*.ipynb', '*.pkl',
@@ -73,7 +65,8 @@ def filter_files(path, include=None, exclude=None, ignore_dirs=None, ignore_file
 def copy_directory_tree(path):
     tree = ''
     ignore_dirs = ['__pycache__', '.pytest_cache', 'v', 'cache', '.git', '.idea', 'objects', 'info', 'logs', 'refs',
-                   'hooks', 'inspectionProfiles', 'b2', 'pack', '00', '6c', 'e6', 'heads', 'tags', 'remotes', 'origin']
+                   'hooks', 'inspectionProfiles', 'b2', 'pack', '00', '6c', 'e6', 'heads', 'tags', 'remotes', 'origin',
+                   'bb', 'f3', '4b', '72', '88', '46', '08']
     ignore_files = ['*.pyc', '__init__.py', '.DS_Store', '*.yaml', '*.json', '*.txt', '*.md', '*.csv', '*.png',
                     '*.jpg', '.idea', '*.git', '*.gitignore', '*.pylintrc', '.ipynb', '*.ipynb', '*.pkl', '*.pickle',
                     '*code_summary.py*', '*scratch*', '*test*']
