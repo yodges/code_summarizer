@@ -3,10 +3,7 @@ import ast
 
 class CodeExtractor(ast.NodeVisitor):
     def __init__(self, include_classes=None, include_methods=None, exclude_classes=None, exclude_methods=None):
-        """
-        TEST
-        :param exclude_methods:
-        """
+        """Initialize code extractor with filtering options."""
         self.include_classes = include_classes or set()
         self.include_methods = include_methods or set()
         self.exclude_classes = exclude_classes or set()
@@ -17,16 +14,19 @@ class CodeExtractor(ast.NodeVisitor):
         self.parent = None
 
     def is_class_included(self, class_name):
+        """Check if a class should be included based on filtering options."""
         return (
                 not self.include_classes or class_name in self.include_classes) \
             and class_name not in self.exclude_classes
 
     def is_method_included(self, method_name):
+        """Check if a method should be included based on filtering options."""
         return (
                 not self.include_methods or method_name in self.include_methods) \
             and method_name not in self.exclude_methods
 
     def remove_docstrings(self, body):
+        """Remove docstrings from the body of a method or class."""
         if isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Str):
             self.docstrings.append(body[0].value.s)
             body.pop(0)
@@ -34,6 +34,7 @@ class CodeExtractor(ast.NodeVisitor):
             self.docstrings.append('')
 
     def store_docstring(self, node):
+        """Store the docstring of a class or method."""
         docstring = ast.get_docstring(node)
         if isinstance(node, ast.ClassDef):
             name = node.name
@@ -51,6 +52,7 @@ class CodeExtractor(ast.NodeVisitor):
 
     @staticmethod
     def extract_method_definitions(method):
+        """Extract method name and arguments from method definition."""
         method_name = method.name
         method_args = []
         for arg in method.args.args:
@@ -75,6 +77,7 @@ class CodeExtractor(ast.NodeVisitor):
         return '\n'.join(['    ' * level + line if line.strip() else line for line in code.splitlines()])
 
     def visit_ClassDef(self, node):
+        """Visit class definition and extract relevant code and docstrings."""
         if self.is_class_included(node.name):
             self.store_docstring(node)
             class_decorators = self.extract_decorators(node.decorator_list)
@@ -96,6 +99,7 @@ class CodeExtractor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_FunctionDef(self, node):
+        """Visit function definition and extract relevant code and docstrings."""
         if isinstance(node.parent, ast.ClassDef):
             return
         if self.is_method_included(node.name):
@@ -109,6 +113,7 @@ class CodeExtractor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def generic_visit(self, node):
+        """Visit all nodes in the AST and set the parent attribute."""
         for field, value in ast.iter_fields(node):
             if isinstance(value, list):
                 for item in value:
